@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>TaDa Tasks</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body id="app" class="bg-white text-black min-h-screen flex flex-col transition-colors duration-300">
+
+  <header class="w-full py-4 px-6 flex items-center justify-center border-b border-gray-300 bg-gray-50">
+    <h1 class="text-3xl font-extrabold tracking-wide">TaDa Tasks</h1>
+  </header>
+
+  <section class="w-full py-3 px-6 flex justify-between items-center text-sm font-semibold border-b border-gray-300 bg-gray-100">
+    <div id="dateDisplay"></div>
+    <div>Pending Tasks: <span id="pendingCount">0</span></div>
+  </section>
+
+  <main class="flex-1 w-full p-6 flex flex-col gap-6 items-center">
+
+    <div id="taskPanel" class="w-full max-w-lg rounded-xl shadow-lg p-6 border border-gray-300 bg-white">
+      <h2 class="text-xl font-bold mb-4">Active Tasks</h2>
+      <div class="flex justify-between text-sm mb-4 font-semibold">
+        <span>Total: <span id="totalCount">0</span></span>
+        <span>Completed: <span id="doneCount">0</span></span>
+      </div>
+      <ul id="taskList" class="space-y-3"></ul>
+    </div>
+
+    <div id="completedPanel" class="w-full max-w-lg rounded-xl shadow-lg p-6 border border-gray-300 bg-gray-50">
+      <h2 class="text-xl font-bold mb-4">Completed Tasks</h2>
+      <ul id="completedList" class="space-y-3"></ul>
+    </div>
+
+    <div id="inputPanel" class="w-full max-w-lg rounded-xl shadow-lg p-6 border border-gray-300 bg-gray-50 mt-auto">
+      <form id="taskForm" class="flex gap-2">
+        <input id="taskInput" type="text" placeholder="Add something..."
+          class="flex-1 px-4 py-2 rounded-lg border border-gray-400 placeholder-gray-500 focus:ring-2 focus:ring-black focus:outline-none bg-white text-black">
+        <button type="submit"
+          class="bg-black text-white font-bold px-5 py-2 rounded-lg hover:bg-gray-700 transition">
+          +
+        </button>
+      </form>
+    </div>
+
+  </main>
+
+  <script>
+    const form = document.getElementById('taskForm');
+    const input = document.getElementById('taskInput');
+    const list = document.getElementById('taskList');
+    const completedList = document.getElementById('completedList');
+    const totalCount = document.getElementById('totalCount');
+    const doneCount = document.getElementById('doneCount');
+    const pendingCount = document.getElementById('pendingCount');
+    const dateDisplay = document.getElementById('dateDisplay');
+
+    let tasks = [];
+
+    function updateDate() {
+      const now = new Date();
+      const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+      dateDisplay.textContent = now.toLocaleDateString('en-IN', options);
+    }
+
+    function render() {
+      list.innerHTML = '';
+      completedList.innerHTML = '';
+
+      tasks.forEach((task, i) => {
+        const li = document.createElement('li');
+        li.className = 'flex justify-between items-center bg-gray-50 border border-gray-300 rounded-lg px-4 py-2 hover:bg-gray-100 transition';
+
+        const left = document.createElement('div');
+        left.className = 'flex items-center gap-3';
+
+        const check = document.createElement('input');
+        check.type = 'checkbox';
+        check.checked = task.done;
+        check.className = 'w-5 h-5 accent-black cursor-pointer';
+        check.onchange = () => {
+          tasks[i].done = check.checked;
+          render();
+        };
+
+        const text = document.createElement('span');
+        text.textContent = task.text;
+        text.className = task.done ? 'line-through text-gray-400 font-medium' : 'font-medium';
+
+        left.append(check, text);
+
+        const delBtn = document.createElement('button');
+        delBtn.textContent = 'Delete';
+        delBtn.className = 'bg-black text-white px-3 py-1 rounded hover:bg-gray-700 text-sm font-bold transition';
+        delBtn.onclick = () => {
+          tasks.splice(i, 1);
+          render();
+        };
+
+        li.append(left, delBtn);
+
+        if (task.done) {
+          completedList.append(li);
+        } else {
+          list.append(li);
+        }
+      });
+
+      totalCount.textContent = tasks.length;
+      doneCount.textContent = tasks.filter(t => t.done).length;
+      pendingCount.textContent = tasks.filter(t => !t.done).length;
+    }
+
+    form.addEventListener('submit', e => {
+      e.preventDefault();
+      if (!input.value.trim()) return;
+      tasks.push({ text: input.value.trim(), done: false });
+      input.value = '';
+      render();
+    });
+
+    updateDate();
+    render();
+  </script>
+</body>
+</html>
