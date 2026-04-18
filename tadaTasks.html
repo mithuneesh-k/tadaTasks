@@ -1,126 +1,468 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>TaDa Tasks</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body id="app" class="bg-white text-black min-h-screen flex flex-col transition-colors duration-300">
-
-  <header class="w-full py-4 px-6 flex items-center justify-center border-b border-gray-300 bg-gray-50">
-    <h1 class="text-3xl font-extrabold tracking-wide">TaDa Tasks</h1>
-  </header>
-
-  <section class="w-full py-3 px-6 flex justify-between items-center text-sm font-semibold border-b border-gray-300 bg-gray-100">
-    <div id="dateDisplay"></div>
-    <div>Pending Tasks: <span id="pendingCount">0</span></div>
-  </section>
-
-  <main class="flex-1 w-full p-6 flex flex-col gap-6 items-center">
-
-    <div id="taskPanel" class="w-full max-w-lg rounded-xl shadow-lg p-6 border border-gray-300 bg-white">
-      <h2 class="text-xl font-bold mb-4">Active Tasks</h2>
-      <div class="flex justify-between text-sm mb-4 font-semibold">
-        <span>Total: <span id="totalCount">0</span></span>
-        <span>Completed: <span id="doneCount">0</span></span>
-      </div>
-      <ul id="taskList" class="space-y-3"></ul>
-    </div>
-
-    <div id="completedPanel" class="w-full max-w-lg rounded-xl shadow-lg p-6 border border-gray-300 bg-gray-50">
-      <h2 class="text-xl font-bold mb-4">Completed Tasks</h2>
-      <ul id="completedList" class="space-y-3"></ul>
-    </div>
-
-    <div id="inputPanel" class="w-full max-w-lg rounded-xl shadow-lg p-6 border border-gray-300 bg-gray-50 mt-auto">
-      <form id="taskForm" class="flex gap-2">
-        <input id="taskInput" type="text" placeholder="Add something..."
-          class="flex-1 px-4 py-2 rounded-lg border border-gray-400 placeholder-gray-500 focus:ring-2 focus:ring-black focus:outline-none bg-white text-black">
-        <button type="submit"
-          class="bg-black text-white font-bold px-5 py-2 rounded-lg hover:bg-gray-700 transition">
-          +
-        </button>
-      </form>
-    </div>
-
-  </main>
-
-  <script>
-    const form = document.getElementById('taskForm');
-    const input = document.getElementById('taskInput');
-    const list = document.getElementById('taskList');
-    const completedList = document.getElementById('completedList');
-    const totalCount = document.getElementById('totalCount');
-    const doneCount = document.getElementById('doneCount');
-    const pendingCount = document.getElementById('pendingCount');
-    const dateDisplay = document.getElementById('dateDisplay');
-
-    let tasks = [];
-
-    function updateDate() {
-      const now = new Date();
-      const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-      dateDisplay.textContent = now.toLocaleDateString('en-IN', options);
-    }
-
-    function render() {
-      list.innerHTML = '';
-      completedList.innerHTML = '';
-
-      tasks.forEach((task, i) => {
-        const li = document.createElement('li');
-        li.className = 'flex justify-between items-center bg-gray-50 border border-gray-300 rounded-lg px-4 py-2 hover:bg-gray-100 transition';
-
-        const left = document.createElement('div');
-        left.className = 'flex items-center gap-3';
-
-        const check = document.createElement('input');
-        check.type = 'checkbox';
-        check.checked = task.done;
-        check.className = 'w-5 h-5 accent-black cursor-pointer';
-        check.onchange = () => {
-          tasks[i].done = check.checked;
-          render();
-        };
-
-        const text = document.createElement('span');
-        text.textContent = task.text;
-        text.className = task.done ? 'line-through text-gray-400 font-medium' : 'font-medium';
-
-        left.append(check, text);
-
-        const delBtn = document.createElement('button');
-        delBtn.textContent = 'Delete';
-        delBtn.className = 'bg-black text-white px-3 py-1 rounded hover:bg-gray-700 text-sm font-bold transition';
-        delBtn.onclick = () => {
-          tasks.splice(i, 1);
-          render();
-        };
-
-        li.append(left, delBtn);
-
-        if (task.done) {
-          completedList.append(li);
-        } else {
-          list.append(li);
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TaDa Tasks | Premium Soft UI</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            /* Light Mode Variables */
+            --bg-color: #e0e5ec;
+            --light-shadow: #ffffff;
+            --dark-shadow: #a3b1c6;
+            --text-primary: #44476a;
+            --text-secondary: #7e8299;
+            --accent-primary: #4facfe;
+            --accent-secondary: #00f2fe;
+            --danger: #ff4d4d;
+            --success: #00c853;
+            --card-radius: 24px;
+            --btn-radius: 12px;
+            --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
         }
-      });
 
-      totalCount.textContent = tasks.length;
-      doneCount.textContent = tasks.filter(t => t.done).length;
-      pendingCount.textContent = tasks.filter(t => !t.done).length;
-    }
+        [data-theme="dark"] {
+            --bg-color: #1e1e2e;
+            --light-shadow: #2a2a3e;
+            --dark-shadow: #12121a;
+            --text-primary: #e0e0e0;
+            --text-secondary: #a0a0b0;
+            --accent-primary: #89b4fa;
+            --accent-secondary: #b4befe;
+        }
 
-    form.addEventListener('submit', e => {
-      e.preventDefault();
-      if (!input.value.trim()) return;
-      tasks.push({ text: input.value.trim(), done: false });
-      input.value = '';
-      render();
-    });
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Outfit', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
 
-    updateDate();
-    render();
-  </script>
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem 1rem;
+            transition: var(--transition);
+        }
+
+        /* --- Layout Container --- */
+        .app-container {
+            width: 100%;
+            max-width: 500px;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        /* --- Header --- */
+        header {
+            text-align: center;
+            padding: 1rem 0;
+        }
+
+        .logo {
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .header-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 1.5rem;
+            border-radius: var(--btn-radius);
+            font-size: 0.9rem;
+            font-weight: 600;
+            box-shadow: 6px 6px 12px var(--dark-shadow), -6px -6px 12px var(--light-shadow);
+        }
+
+        /* --- Theme Toggle --- */
+        .theme-toggle {
+            position: fixed;
+            top: 1.5rem;
+            right: 1.5rem;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border: none;
+            background: var(--bg-color);
+            box-shadow: 5px 5px 10px var(--dark-shadow), -5px -5px 10px var(--light-shadow);
+            color: var(--text-primary);
+            transition: var(--transition);
+            z-index: 100;
+        }
+
+        .theme-toggle:active {
+            box-shadow: inset 5px 5px 10px var(--dark-shadow), inset -5px -5px 10px var(--light-shadow);
+        }
+
+        /* --- Sections --- */
+        .section {
+            padding: 1.5rem;
+            border-radius: var(--card-radius);
+            box-shadow: 8px 8px 16px var(--dark-shadow), -8px -8px 16px var(--light-shadow);
+            background: var(--bg-color);
+        }
+
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            color: var(--text-primary);
+        }
+
+        /* --- Task Input --- */
+        .add-task-form {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .input-wrapper {
+            flex: 1;
+            position: relative;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 1rem 1.25rem;
+            border-radius: var(--btn-radius);
+            border: none;
+            outline: none;
+            background: var(--bg-color);
+            box-shadow: inset 4px 4px 8px var(--dark-shadow), inset -4px -4px 8px var(--light-shadow);
+            color: var(--text-primary);
+            font-size: 1rem;
+            font-weight: 500;
+            transition: var(--transition);
+        }
+
+        input[type="text"]:focus {
+            box-shadow: inset 2px 2px 4px var(--dark-shadow), inset -2px -2px 4px var(--light-shadow);
+        }
+
+        .btn-add {
+            width: 50px;
+            height: 50px;
+            border-radius: var(--btn-radius);
+            border: none;
+            background: var(--bg-color);
+            box-shadow: 5px 5px 10px var(--dark-shadow), -5px -5px 10px var(--light-shadow);
+            color: var(--accent-primary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+        }
+
+        .btn-add:hover {
+            color: var(--accent-secondary);
+        }
+
+        .btn-add:active {
+            box-shadow: inset 5px 5px 10px var(--dark-shadow), inset -5px -5px 10px var(--light-shadow);
+            transform: scale(0.98);
+        }
+
+        /* --- Task List --- */
+        .task-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .task-item {
+            padding: 1rem;
+            border-radius: var(--btn-radius);
+            background: var(--bg-color);
+            box-shadow: 5px 5px 10px var(--dark-shadow), -5px -5px 10px var(--light-shadow);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            animation: slideIn 0.3s ease-out;
+            transition: var(--transition);
+        }
+
+        .task-item.completed {
+            opacity: 0.7;
+        }
+
+        .task-item:hover {
+            transform: translateY(-2px);
+        }
+
+        .checkbox-custom {
+            width: 24px;
+            height: 24px;
+            border-radius: 6px;
+            background: var(--bg-color);
+            box-shadow: 3px 3px 6px var(--dark-shadow), -3px -3px 6px var(--light-shadow);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: transparent;
+            transition: var(--transition);
+        }
+
+        .checkbox-custom.checked {
+            box-shadow: inset 3px 3px 6px var(--dark-shadow), inset -3px -3px 6px var(--light-shadow);
+            color: var(--accent-primary);
+        }
+
+        .task-text {
+            flex: 1;
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            transition: var(--transition);
+        }
+
+        .completed .task-text {
+            text-decoration: line-through;
+            color: var(--text-secondary);
+        }
+
+        .btn-delete {
+            opacity: 0;
+            background: none;
+            border: none;
+            color: var(--danger);
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 8px;
+            transition: var(--transition);
+        }
+
+        .task-item:hover .btn-delete {
+            opacity: 1;
+            box-shadow: 3px 3px 6px var(--dark-shadow), -3px -3px 6px var(--light-shadow);
+        }
+
+        .task-item:hover .btn-delete:active {
+            box-shadow: inset 3px 3px 6px var(--dark-shadow), inset -3px -3px 6px var(--light-shadow);
+        }
+
+        /* --- Empty State --- */
+        .empty-state {
+            text-align: center;
+            padding: 2rem 0;
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+
+        /* --- Animations --- */
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* --- Responsive --- */
+        @media (max-width: 480px) {
+            body { padding: 1rem; }
+            .logo { font-size: 2rem; }
+        }
+    </style>
+</head>
+<body data-theme="light">
+
+    <button class="theme-toggle" id="themeToggle" title="Toggle Theme">
+        <i data-lucide="moon" id="themeIcon"></i>
+    </button>
+
+    <div class="app-container">
+        <header>
+            <div class="logo">
+                <i data-lucide="check-circle-2"></i>
+                TaDa Tasks
+            </div>
+            <div class="header-info">
+                <span id="currentDate"></span>
+                <span id="statSummary">0 Pending</span>
+            </div>
+        </header>
+
+        <!-- Add Task Section -->
+        <div class="section">
+            <h2 class="section-title"><i data-lucide="plus-circle" style="color: var(--accent-primary)"></i> New Task</h2>
+            <form class="add-task-form" id="todoForm">
+                <div class="input-wrapper">
+                    <input type="text" id="todoInput" placeholder="Write something here..." autocomplete="off">
+                </div>
+                <button type="submit" class="btn-add">
+                    <i data-lucide="send"></i>
+                </button>
+            </form>
+        </div>
+
+        <!-- Active Tasks Section -->
+        <div class="section">
+            <div class="section-title">
+                <i data-lucide="layers" style="color: var(--accent-primary)"></i>
+                Active Tasks
+            </div>
+            <ul class="task-list" id="activeTasks">
+                <!-- Tasks will be injected here -->
+            </ul>
+        </div>
+
+        <!-- Completed Tasks Section -->
+        <div class="section">
+            <div class="section-title">
+                <i data-lucide="check-square" style="color: var(--success)"></i>
+                Completed
+            </div>
+            <ul class="task-list" id="completedTasks">
+                <!-- Completed tasks will be injected here -->
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // Init Lucide
+        lucide.createIcons();
+
+        // State
+        let tasks = JSON.parse(localStorage.getItem('tada_tasks')) || [];
+        let isDarkMode = localStorage.getItem('tada_theme') === 'dark';
+
+        // Elements
+        const themeToggle = document.getElementById('themeToggle');
+        const themeIcon = document.getElementById('themeIcon');
+        const todoForm = document.getElementById('todoForm');
+        const todoInput = document.getElementById('todoInput');
+        const activeContainer = document.getElementById('activeTasks');
+        const completedContainer = document.getElementById('completedTasks');
+        const currentDateEl = document.getElementById('currentDate');
+        const statSummaryEl = document.getElementById('statSummary');
+
+        // Functions
+        function updateDate() {
+            const options = { weekday: 'short', month: 'short', day: 'numeric' };
+            currentDateEl.textContent = new Date().toLocaleDateString('en-US', options);
+        }
+
+        function save() {
+            localStorage.setItem('tada_tasks', JSON.stringify(tasks));
+            render();
+        }
+
+        function toggleTheme() {
+            isDarkMode = !isDarkMode;
+            document.body.setAttribute('data-theme', isDarkMode ? 'dark' : 'light');
+            themeIcon.setAttribute('data-lucide', isDarkMode ? 'sun' : 'moon');
+            localStorage.setItem('tada_theme', isDarkMode ? 'dark' : 'light');
+            lucide.createIcons();
+        }
+
+        function addTask(text) {
+            if (!text.trim()) return;
+            tasks.push({
+                id: Date.now(),
+                text: text.trim(),
+                completed: false,
+                createdAt: new Date().toISOString()
+            });
+            save();
+        }
+
+        function toggleTask(id) {
+            tasks = tasks.map(t => t.id === id ? { ...t, completed: !t.completed } : t);
+            save();
+        }
+
+        function deleteTask(id) {
+            tasks = tasks.filter(t => t.id !== id);
+            save();
+        }
+
+        function render() {
+            activeContainer.innerHTML = '';
+            completedContainer.innerHTML = '';
+
+            const active = tasks.filter(t => !t.completed);
+            const completed = tasks.filter(t => t.completed);
+
+            if (active.length === 0) {
+                activeContainer.innerHTML = '<div class="empty-state">No active tasks. Time to relax?</div>';
+            } else {
+                active.forEach(task => {
+                    activeContainer.appendChild(createTaskElement(task));
+                });
+            }
+
+            if (completed.length === 0) {
+                completedContainer.innerHTML = '<div class="empty-state">Nothing completed yet.</div>';
+            } else {
+                completed.forEach(task => {
+                    completedContainer.appendChild(createTaskElement(task));
+                });
+            }
+
+            statSummaryEl.textContent = `${active.length} Pending`;
+            lucide.createIcons();
+        }
+
+        function createTaskElement(task) {
+            const li = document.createElement('li');
+            li.className = `task-item ${task.completed ? 'completed' : ''}`;
+            
+            li.innerHTML = `
+                <div class="checkbox-custom ${task.completed ? 'checked' : ''}" onclick="toggleTask(${task.id})">
+                    <i data-lucide="check" size="16"></i>
+                </div>
+                <span class="task-text">${task.text}</span>
+                <button class="btn-delete" onclick="deleteTask(${task.id})">
+                    <i data-lucide="trash-2" size="18"></i>
+                </button>
+            `;
+            
+            return li;
+        }
+
+        // Event Listeners
+        todoForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            addTask(todoInput.value);
+            todoInput.value = '';
+        });
+
+        themeToggle.addEventListener('click', toggleTheme);
+
+        // Initial Boot
+        if (isDarkMode) {
+            document.body.setAttribute('data-theme', 'dark');
+            themeIcon.setAttribute('data-lucide', 'sun');
+        }
+        updateDate();
+        render();
+    </script>
 </body>
 </html>
