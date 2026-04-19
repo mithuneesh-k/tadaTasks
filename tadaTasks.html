@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,7 +8,8 @@
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
@@ -280,23 +282,36 @@
 
         /* --- Animations --- */
         @keyframes slideIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         /* --- Responsive --- */
         @media (max-width: 480px) {
-            body { padding: 1rem; }
-            .logo { font-size: 2rem; }
+            body {
+                padding: 1rem;
+            }
+
+            .logo {
+                font-size: 2rem;
+            }
         }
     </style>
 </head>
+
 <body data-theme="light">
 
     <button class="theme-toggle" id="themeToggle" title="Toggle Theme">
         <i data-lucide="moon" id="themeIcon"></i>
     </button>
-
+    <!-- Code by Mithuneesh -->
     <div class="app-container">
         <header>
             <div class="logo">
@@ -311,7 +326,8 @@
 
         <!-- Add Task Section -->
         <div class="section">
-            <h2 class="section-title"><i data-lucide="plus-circle" style="color: var(--accent-primary)"></i> New Task</h2>
+            <h2 class="section-title"><i data-lucide="plus-circle" style="color: var(--accent-primary)"></i> New Task
+            </h2>
             <form class="add-task-form" id="todoForm">
                 <div class="input-wrapper">
                     <input type="text" id="todoInput" placeholder="Write something here..." autocomplete="off">
@@ -433,7 +449,7 @@
         function createTaskElement(task) {
             const li = document.createElement('li');
             li.className = `task-item ${task.completed ? 'completed' : ''}`;
-            
+
             li.innerHTML = `
                 <div class="checkbox-custom ${task.completed ? 'checked' : ''}" onclick="toggleTask(${task.id})">
                     <i data-lucide="check" size="16"></i>
@@ -443,7 +459,7 @@
                     <i data-lucide="trash-2" size="18"></i>
                 </button>
             `;
-            
+
             return li;
         }
 
@@ -465,4 +481,5 @@
         render();
     </script>
 </body>
+
 </html>
