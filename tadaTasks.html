@@ -12,6 +12,7 @@
         rel="stylesheet">
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
         :root {
             /* Light Mode Variables */
@@ -24,6 +25,8 @@
             --accent-secondary: #00f2fe;
             --danger: #ff4d4d;
             --success: #00c853;
+            --warning: #ffb020;
+            --info: #4facfe;
             --card-radius: 24px;
             --btn-radius: 12px;
             --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
@@ -95,6 +98,24 @@
             font-size: 0.9rem;
             font-weight: 600;
             box-shadow: 6px 6px 12px var(--dark-shadow), -6px -6px 12px var(--light-shadow);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .progress-bar-container {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(to right, var(--accent-primary), var(--accent-secondary));
+            width: 0%;
+            transition: width 0.5s ease;
         }
 
         /* --- Theme Toggle --- */
@@ -142,7 +163,36 @@
         /* --- Task Input --- */
         .add-task-form {
             display: flex;
+            flex-direction: column;
             gap: 1rem;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .options-group {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .select-custom {
+            padding: 0.6rem 1rem;
+            border-radius: 10px;
+            border: none;
+            background: var(--bg-color);
+            box-shadow: 4px 4px 8px var(--dark-shadow), -4px -4px 8px var(--light-shadow);
+            color: var(--text-primary);
+            font-size: 0.85rem;
+            font-weight: 600;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .select-custom:active {
+            box-shadow: inset 2px 2px 4px var(--dark-shadow), inset -2px -2px 4px var(--light-shadow);
         }
 
         .input-wrapper {
@@ -252,24 +302,89 @@
             color: var(--text-secondary);
         }
 
-        .btn-delete {
+        .task-meta {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+            flex: 1;
+        }
+
+        .task-tags {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .badge {
+            font-size: 0.7rem;
+            padding: 0.2rem 0.6rem;
+            border-radius: 20px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .badge-low { background: rgba(79, 172, 254, 0.1); color: var(--info); }
+        .badge-medium { background: rgba(255, 176, 32, 0.1); color: var(--warning); }
+        .badge-high { background: rgba(255, 77, 77, 0.1); color: var(--danger); }
+
+        .category-tag {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .task-actions {
+            display: flex;
+            gap: 0.5rem;
             opacity: 0;
+            transition: var(--transition);
+        }
+
+        .task-item:hover .task-actions {
+            opacity: 1;
+        }
+
+        .btn-icon {
             background: none;
             border: none;
-            color: var(--danger);
             cursor: pointer;
             padding: 0.5rem;
             border-radius: 8px;
             transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
-        .task-item:hover .btn-delete {
-            opacity: 1;
+        .btn-edit { color: var(--accent-primary); }
+        .btn-delete { color: var(--danger); }
+
+        .btn-icon:hover {
             box-shadow: 3px 3px 6px var(--dark-shadow), -3px -3px 6px var(--light-shadow);
         }
 
-        .task-item:hover .btn-delete:active {
+        .btn-icon:active {
             box-shadow: inset 3px 3px 6px var(--dark-shadow), inset -3px -3px 6px var(--light-shadow);
+        }
+
+        .clear-btn {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--danger);
+            background: none;
+            border: none;
+            cursor: pointer;
+            margin-left: auto;
+            padding: 0.4rem 0.8rem;
+            border-radius: 8px;
+            transition: var(--transition);
+        }
+
+        .clear-btn:hover {
+            background: rgba(255, 77, 77, 0.1);
         }
 
         /* --- Empty State --- */
@@ -321,6 +436,9 @@
             <div class="header-info">
                 <span id="currentDate"></span>
                 <span id="statSummary">0 Pending</span>
+                <div class="progress-bar-container">
+                    <div class="progress-bar-fill" id="progressBar"></div>
+                </div>
             </div>
         </header>
 
@@ -329,12 +447,22 @@
             <h2 class="section-title"><i data-lucide="plus-circle" style="color: var(--accent-primary)"></i> New Task
             </h2>
             <form class="add-task-form" id="todoForm">
-                <div class="input-wrapper">
-                    <input type="text" id="todoInput" placeholder="Write something here..." autocomplete="off">
+                <div class="input-group">
+                    <div class="input-wrapper">
+                        <input type="text" id="todoInput" placeholder="Write something here..." autocomplete="off">
+                    </div>
+                    <button type="submit" class="btn-add">
+                        <i data-lucide="send"></i>
+                    </button>
                 </div>
-                <button type="submit" class="btn-add">
-                    <i data-lucide="send"></i>
-                </button>
+                <div class="options-group">
+                    <select id="prioritySelect" class="select-custom">
+                        <option value="low">Low Priority</option>
+                        <option value="medium">Medium Priority</option>
+                        <option value="high">High Priority</option>
+                    </select>
+                    <input type="text" id="categoryInput" class="select-custom" placeholder="Category (e.g. Work)" style="width: 150px;">
+                </div>
             </form>
         </div>
 
@@ -354,6 +482,7 @@
             <div class="section-title">
                 <i data-lucide="check-square" style="color: var(--success)"></i>
                 Completed
+                <button class="clear-btn" onclick="clearCompleted()" id="clearBtn">Clear All</button>
             </div>
             <ul class="task-list" id="completedTasks">
                 <!-- Completed tasks will be injected here -->
@@ -374,10 +503,13 @@
         const themeIcon = document.getElementById('themeIcon');
         const todoForm = document.getElementById('todoForm');
         const todoInput = document.getElementById('todoInput');
+        const prioritySelect = document.getElementById('prioritySelect');
+        const categoryInput = document.getElementById('categoryInput');
         const activeContainer = document.getElementById('activeTasks');
         const completedContainer = document.getElementById('completedTasks');
         const currentDateEl = document.getElementById('currentDate');
         const statSummaryEl = document.getElementById('statSummary');
+        const progressBar = document.getElementById('progressBar');
 
         // Functions
         function updateDate() {
@@ -398,25 +530,68 @@
             lucide.createIcons();
         }
 
-        function addTask(text) {
+        function addTask(text, priority, category) {
             if (!text.trim()) return;
             tasks.push({
                 id: Date.now(),
                 text: text.trim(),
                 completed: false,
+                priority: priority || 'low',
+                category: category.trim() || 'General',
                 createdAt: new Date().toISOString()
             });
             save();
         }
 
         function toggleTask(id) {
-            tasks = tasks.map(t => t.id === id ? { ...t, completed: !t.completed } : t);
-            save();
+            const taskIndex = tasks.findIndex(t => t.id === id);
+            if (taskIndex !== -1) {
+                tasks[taskIndex].completed = !tasks[taskIndex].completed;
+                if (tasks[taskIndex].completed) {
+                    triggerConfetti();
+                }
+                save();
+            }
         }
 
         function deleteTask(id) {
             tasks = tasks.filter(t => t.id !== id);
             save();
+        }
+
+        function editTask(id) {
+            const task = tasks.find(t => t.id === id);
+            if (!task) return;
+            
+            const newText = prompt("Edit your task:", task.text);
+            if (newText !== null && newText.trim() !== "") {
+                task.text = newText.trim();
+                save();
+            }
+        }
+
+        function clearCompleted() {
+            if (confirm("Are you sure you want to clear all completed tasks?")) {
+                tasks = tasks.filter(t => !t.completed);
+                save();
+            }
+        }
+
+        function triggerConfetti() {
+            confetti({
+                particleCount: 100,
+                spread: 70,
+                origin: { y: 0.6 },
+                colors: ['#4facfe', '#00f2fe', '#00c853']
+            });
+        }
+
+        function updateProgress() {
+            const total = tasks.length;
+            const completed = tasks.filter(t => t.completed).length;
+            const percentage = total === 0 ? 0 : (completed / total) * 100;
+            progressBar.style.width = `${percentage}%`;
+            statSummaryEl.textContent = `${total - completed} Pending`;
         }
 
         function render() {
@@ -429,6 +604,10 @@
             if (active.length === 0) {
                 activeContainer.innerHTML = '<div class="empty-state">No active tasks. Time to relax?</div>';
             } else {
+                // Sort active by priority: high -> medium -> low
+                const priorityOrder = { high: 0, medium: 1, low: 2 };
+                active.sort((a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]);
+                
                 active.forEach(task => {
                     activeContainer.appendChild(createTaskElement(task));
                 });
@@ -436,13 +615,15 @@
 
             if (completed.length === 0) {
                 completedContainer.innerHTML = '<div class="empty-state">Nothing completed yet.</div>';
+                document.getElementById('clearBtn').style.display = 'none';
             } else {
+                document.getElementById('clearBtn').style.display = 'block';
                 completed.forEach(task => {
                     completedContainer.appendChild(createTaskElement(task));
                 });
             }
 
-            statSummaryEl.textContent = `${active.length} Pending`;
+            updateProgress();
             lucide.createIcons();
         }
 
@@ -454,10 +635,22 @@
                 <div class="checkbox-custom ${task.completed ? 'checked' : ''}" onclick="toggleTask(${task.id})">
                     <i data-lucide="check" size="16"></i>
                 </div>
-                <span class="task-text">${task.text}</span>
-                <button class="btn-delete" onclick="deleteTask(${task.id})">
-                    <i data-lucide="trash-2" size="18"></i>
-                </button>
+                <div class="task-meta">
+                    <span class="task-text">${task.text}</span>
+                    <div class="task-tags">
+                        <span class="badge badge-${task.priority}">${task.priority}</span>
+                        <span class="category-tag"><i data-lucide="tag" size="10"></i> ${task.category}</span>
+                    </div>
+                </div>
+                <div class="task-actions">
+                    ${!task.completed ? `
+                    <button class="btn-icon btn-edit" onclick="editTask(${task.id})" title="Edit Task">
+                        <i data-lucide="edit-3" size="18"></i>
+                    </button>` : ''}
+                    <button class="btn-icon btn-delete" onclick="deleteTask(${task.id})" title="Delete Task">
+                        <i data-lucide="trash-2" size="18"></i>
+                    </button>
+                </div>
             `;
 
             return li;
@@ -466,8 +659,10 @@
         // Event Listeners
         todoForm.addEventListener('submit', (e) => {
             e.preventDefault();
-            addTask(todoInput.value);
+            addTask(todoInput.value, prioritySelect.value, categoryInput.value);
             todoInput.value = '';
+            categoryInput.value = '';
+            prioritySelect.value = 'low';
         });
 
         themeToggle.addEventListener('click', toggleTheme);
